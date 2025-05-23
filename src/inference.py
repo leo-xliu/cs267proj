@@ -6,14 +6,12 @@ INFERENCE_ALGORITHM = {
     # add other inference algorithms here
 }
 
-
 def pr(program, inference="monte_carlo", n=1000):
     parser = Parser()
     parsed_program = parser.parse(program)
     prob_true = INFERENCE_ALGORITHM[inference](parsed_program, n)
     print(f"True ==> {prob_true:.4f},  False ==> {1-prob_true:.4f}")
     
-
 def monte_carlo_inference(parsed_program, n):
     # simple monte carlo inference by actually running program n times 
     true = 0 

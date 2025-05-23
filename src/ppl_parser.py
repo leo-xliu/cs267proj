@@ -1,4 +1,4 @@
-from ast import Assign, Return, Flip
+from src.ast import Assign, Return, Flip
 
 class Parser:
     def __init__(self):

@@ -1,4 +1,4 @@
-from ast import Assign, Return, Flip
+from src.ast import Assign, Return, Flip
 import random
 
 class Interpreter():
@@ -31,5 +31,8 @@ class Interpreter():
     
     def eval_return(self, return_node: Return):
         # Evaluate return by returning value stored in mapping
+        # Variable does not exist 
+        if return_node.name not in self.vars:
+            raise NameError(f"Undefined return variable: {return_node.name!r}")
         return self.vars[return_node.name]
 
