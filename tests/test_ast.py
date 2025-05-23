@@ -4,17 +4,15 @@ from src.ast import Assign, Return, Flip
 class TestASTComponents(unittest.TestCase):
     def test_assign_object_initialization(self):
         pass
-        assign_node = Assign()
 
     def test_return_object_initialization(self):
         pass
-        return_node = Return()
 
     def test_flip_object_initialization(self):
         # Assigning valid probabilities
         self.assertEqual(Flip(0.5).prob, 0.5)
         self.assertEqual(Flip(0).prob, 0)
-        self.assertEqual(Flip(1), 1)
+        self.assertEqual(Flip(1).prob, 1)
 
         # Invalid probabilities 
         self.assertRaises(TypeError, Flip, "string")
