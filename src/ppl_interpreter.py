@@ -1,19 +1,35 @@
-import ppl_parser
+from ast import Assign, Return, Flip
+import random
 
 class Interpreter():
     def __init__(self):
-        pass
+        # Map variable names to stored value 
+        self.vars = {}
     
     def run(self, program):
-        # take in a parsed program and evaluate it
-        # should return the final statement of program 
-        pass    
+        # Evaluate the entire program sequentially following the array of statements 
+        for statement in program:
+            if isinstance(statement, Assign):
+                self.eval_assign(statement)
+            else: # Unknown statement type
+                raise NotImplementedError(
+                    f"Unknown statement type: {type(statement).__name__}"
+                )
 
-    def eval_assign(self, assign_node):
-        # take an Assign object and evaluate it 
-        pass
+    def eval_assign(self, assign_node: Assign):
+        # Evaluate right side of an assignment and assign it to variable
+        if isinstance(assign_node.expr, bool):
+            self.vars[assign_node.name] = assign_node.expr
+        elif isinstance(assign_node.expr, Flip):
+            self.vars[assign_node.name] = self.eval_flip(assign_node.expr)
 
-    def eval_flip(self, flip_node):
-        #take a Flip object and evalaute it
-        pass
+    def eval_flip(self, flip_node: Flip):
+        # Evaluate the Flip construct
+        if flip_node.prob > random.random():
+            return True
+        return False
+    
+    def eval_return(self, return_node: Return):
+        # Evaluate return by returning value stored in mapping
+        return self.vars[return_node.name]
 
