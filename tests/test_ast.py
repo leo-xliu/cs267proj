@@ -1,5 +1,5 @@
 import unittest
-from src.ppl_ast import Assign, Return, Flip
+from src.ppl_ast import *
 
 class TestASTComponents(unittest.TestCase):
     def test_assign_object_initialization(self):
@@ -18,6 +18,15 @@ class TestASTComponents(unittest.TestCase):
         self.assertRaises(TypeError, Flip, "string")
         self.assertRaises(ValueError, Flip, 100)
         self.assertRaises(ValueError, Flip, -0.5)
+
+    def test_or_object_initialization(self):
+        pass
+
+    def test_and_object_initialization(self):
+        pass
+
+    def test_not_object_initialization(self):
+        pass
 
 if __name__ == "__main__":
     unittest.main()

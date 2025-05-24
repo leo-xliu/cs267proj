@@ -1,6 +1,6 @@
 # Unit testing for interpreter
 import unittest
-from src.ppl_ast import Assign, Flip, Return
+from src.ppl_ast import *
 from src.ppl_interpreter import Interpreter
 
 # safe to assume only a valid AST is passed (?)

@@ -1,4 +1,4 @@
-from src.ppl_ast import Assign, Return, Flip
+from src.ppl_ast import *
 import random
 
 class Interpreter():
@@ -13,6 +13,9 @@ class Interpreter():
                 self.eval_assign(statement)
             elif isinstance(statement, Return):
                 return self.eval_return(statement)
+            elif isinstance(statement, Flip):
+                # Trivial, do nothing 
+                continue
             else: # Unknown statement type
                 raise NotImplementedError(
                     f"Unknown statement type: {type(statement).__name__}"
