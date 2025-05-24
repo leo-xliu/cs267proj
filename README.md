@@ -10,3 +10,7 @@ To run all unit tests from the project root:
 
 ```bash
 python -m unittest discover
+```
+
+## Additional Goal
+Build a command-line REPL for our PPL so user can write their probablistic program and inference it directly from the terminal 

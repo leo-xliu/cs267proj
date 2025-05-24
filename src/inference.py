@@ -1,5 +1,5 @@
-from ppl_parser import Parser
-from ppl_interpreter import Interpreter
+from src.ppl_parser import Parser
+from src.ppl_interpreter import Interpreter
 
 INFERENCE_ALGORITHM = {
     "monte_carlo": lambda parsed_program, n: monte_carlo_inference(parsed_program, n), 

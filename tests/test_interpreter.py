@@ -1,6 +1,6 @@
 # Unit testing for interpreter
 import unittest
-from src.ast import Assign, Flip, Return
+from src.ppl_ast import Assign, Flip, Return
 from src.ppl_interpreter import Interpreter
 
 # safe to assume only a valid AST is passed (?)
@@ -27,6 +27,9 @@ class TestInterpreter(unittest.TestCase):
         self.assertEqual(interpreter.vars["y"], True)
         self.assertEqual(interpreter.vars["z"], False)
 
+        # Invalid Assignment 
+        self.assertRaises(NotImplementedError, interpreter.eval_assign, Assign("a", "to a string"))
+
     def test_eval_return_method(self):
         interpreter = Interpreter()
         interpreter.vars["x"] = True
@@ -36,5 +39,11 @@ class TestInterpreter(unittest.TestCase):
 
         # Check existing variable
         self.assertEqual(interpreter.eval_return(Return("x")), True)
+
+    def test_run_method(self):
+        ast = [Assign("x", True), Assign("y", False), Assign("z", Flip(1)), Return("x")]
+        self.assertEqual(Interpreter().run(ast), True)
+
+
 if __name__ == "__main__":
     unittest.main()

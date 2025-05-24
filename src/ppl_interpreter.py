@@ -1,4 +1,4 @@
-from src.ast import Assign, Return, Flip
+from src.ppl_ast import Assign, Return, Flip
 import random
 
 class Interpreter():
@@ -11,6 +11,8 @@ class Interpreter():
         for statement in program:
             if isinstance(statement, Assign):
                 self.eval_assign(statement)
+            elif isinstance(statement, Return):
+                return self.eval_return(statement)
             else: # Unknown statement type
                 raise NotImplementedError(
                     f"Unknown statement type: {type(statement).__name__}"
@@ -22,6 +24,10 @@ class Interpreter():
             self.vars[assign_node.name] = assign_node.expr
         elif isinstance(assign_node.expr, Flip):
             self.vars[assign_node.name] = self.eval_flip(assign_node.expr)
+        else:
+            raise NotImplementedError(
+                f"Unknown assignment expression: {type(assign_node.expr).__name__}"
+            )
 
     def eval_flip(self, flip_node: Flip):
         # Evaluate the Flip construct

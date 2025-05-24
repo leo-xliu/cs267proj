@@ -1,5 +1,5 @@
 import unittest
-from src.ast import Assign, Return, Flip
+from src.ppl_ast import Assign, Return, Flip
 
 class TestASTComponents(unittest.TestCase):
     def test_assign_object_initialization(self):
