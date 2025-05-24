@@ -30,6 +30,9 @@ class TestInterpreter(unittest.TestCase):
         # Invalid Assignment 
         self.assertRaises(NotImplementedError, interpreter.eval_assign, Assign("a", "to a string"))
 
+    def test_eval_variable(self):
+        pass
+
     def test_eval_return_method(self):
         interpreter = Interpreter()
         interpreter.vars["x"] = True
@@ -168,8 +171,6 @@ class TestInterpreter(unittest.TestCase):
     def test_run_method(self):
         ast = [Assign("x", True), Assign("y", False), Assign("z", Flip(1)), Return("x")]
         self.assertEqual(Interpreter().run(ast), True)
-
-        
 
 
 if __name__ == "__main__":

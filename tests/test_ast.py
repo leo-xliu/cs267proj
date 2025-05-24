@@ -28,5 +28,8 @@ class TestASTComponents(unittest.TestCase):
     def test_not_object_initialization(self):
         pass
 
+    def test_variable_initialization(self):
+        pass
+
 if __name__ == "__main__":
     unittest.main()

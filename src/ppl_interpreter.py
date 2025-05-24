@@ -39,11 +39,12 @@ class Interpreter():
             self.vars[assign_node.name] = self.eval_and(assign_node.expr)
         elif isinstance(assign_node.expr, Not):
             self.var[assign_node.name] = self.eval_not(assign_node.expr)
+        elif isinstance(assign_node.expr, Variable):
+            self.var[assign_node.name] = self.eval_variable(assign_node.expr)
         else:
             raise NotImplementedError(
                 f"Unknown assignment expression: {type(assign_node.expr).__name__}"
             )
-        # add support for boolean variable 
 
     def eval_flip(self, flip_node: Flip):
         # Evaluate the Flip construct
@@ -53,10 +54,7 @@ class Interpreter():
     
     def eval_return(self, return_node: Return):
         # Evaluate return by returning value stored in mapping
-        # Variable does not exist 
-        if return_node.name not in self.vars:
-            raise NameError(f"Undefined return variable: {return_node.name!r}")
-        return self.vars[return_node.name]
+        return self.eval_bool(return_node.expr)
     
     def eval_or(self, or_node: Or):
         return self.eval_bool(or_node.l_expr) or self.eval_bool(or_node.r_expr)
@@ -78,6 +76,12 @@ class Interpreter():
             return self.eval_and(node)
         elif isinstance(node, Not):
             return self.eval_not(node)
+        elif isinstance(node, Variable):
+            return self.eval_variable(node)
         else:
             raise NotImplementedError(f"Boolean operand not supported: {type(node).__name__}")
-        # add support for boolean variable 
+
+    def eval_variable(self, var_node):
+        if var_node.name not in self.vars:
+            raise NameError(f"Undefined return variable: {var_node.name!r}")
+        return self.vars[var_node.name]
