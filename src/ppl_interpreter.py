@@ -16,6 +16,12 @@ class Interpreter():
             elif isinstance(statement, Flip):
                 # Trivial, do nothing 
                 continue
+            elif isinstance(statement, And):
+                continue
+            elif isinstance(statement, Or):
+                continue
+            elif isinstance(statement, Not):
+                continue
             else: # Unknown statement type
                 raise NotImplementedError(
                     f"Unknown statement type: {type(statement).__name__}"
@@ -27,10 +33,17 @@ class Interpreter():
             self.vars[assign_node.name] = assign_node.expr
         elif isinstance(assign_node.expr, Flip):
             self.vars[assign_node.name] = self.eval_flip(assign_node.expr)
+        elif isinstance(assign_node.expr, Or):
+            self.vars[assign_node.name] = self.eval_or(assign_node.expr)
+        elif isinstance(assign_node.expr, And):
+            self.vars[assign_node.name] = self.eval_and(assign_node.expr)
+        elif isinstance(assign_node.expr, Not):
+            self.var[assign_node.name] = self.eval_not(assign_node.expr)
         else:
             raise NotImplementedError(
                 f"Unknown assignment expression: {type(assign_node.expr).__name__}"
             )
+        # add support for boolean variable 
 
     def eval_flip(self, flip_node: Flip):
         # Evaluate the Flip construct
@@ -44,4 +57,27 @@ class Interpreter():
         if return_node.name not in self.vars:
             raise NameError(f"Undefined return variable: {return_node.name!r}")
         return self.vars[return_node.name]
+    
+    def eval_or(self, or_node: Or):
+        return self.eval_bool(or_node.l_expr) or self.eval_bool(or_node.r_expr)
 
+    def eval_and(self, and_node: And):
+        return self.eval_bool(and_node.l_expr) and self.eval_bool(and_node.r_expr)
+
+    def eval_not(self, not_node: Not):
+        return not self.eval_bool(not_node.expr)
+
+    def eval_bool(self, node):
+        if isinstance(node, Flip):
+            return self.eval_flip(node)
+        elif isinstance(node, bool):
+            return node
+        elif isinstance(node, Or):
+            return self.eval_or(node)
+        elif isinstance(node, And):
+            return self.eval_and(node)
+        elif isinstance(node, Not):
+            return self.eval_not(node)
+        else:
+            raise NotImplementedError(f"Boolean operand not supported: {type(node).__name__}")
+        # add support for boolean variable 

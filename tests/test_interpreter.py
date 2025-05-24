@@ -40,9 +40,136 @@ class TestInterpreter(unittest.TestCase):
         # Check existing variable
         self.assertEqual(interpreter.eval_return(Return("x")), True)
 
+    def test_eval_or_basic(self):
+        interpreter = Interpreter()
+        cases = [
+            (False, False, False), 
+            (False, True, True),
+            (True, False, True),
+            (True, True, True),
+        ]
+
+        for l_expr, r_expr, expected in cases:
+            with self.subTest(l_expr=l_expr, r_expr=r_expr):
+                self.assertEqual(interpreter.eval_or(Or(l_expr, r_expr)), expected)
+
+    def test_eval_and_basic(self):
+        interpreter = Interpreter()
+        cases = [
+            (False, False, False), 
+            (False, True, False),
+            (True, False, False),
+            (True, True, True),
+        ]
+
+        for l_expr, r_expr, expected in cases:
+            with self.subTest(l_expr=l_expr, r_expr=r_expr):
+                self.assertEqual(interpreter.eval_and(And(l_expr, r_expr)), expected)
+
+    def test_eval_not_basic(self):
+        interpreter = Interpreter()
+        cases = [
+            (False, True), 
+            (True, False),
+        ]
+
+        for expr, expected in cases:
+            with self.subTest(expr=expr):
+                self.assertEqual(interpreter.eval_not(Not(expr)), expected)
+
+    def test_eval_bool(self):
+        interpreter = Interpreter()
+
+        # Add test cases here 
+        cases = [
+            (Flip(1), True),
+            (Flip(0), False),
+            (True, True),
+            (False, False),
+            (Or(False, False), False),
+            (Or(False, True), True),
+            (Or(True, False), True),
+            (Or(True, True), True),
+            (And(False, False), False),
+            (And(False, True), False),
+            (And(True, False), False),
+            (And(True, True), True),
+            (Not(True), False),
+            (Not(False), True),
+        ]
+
+        for expr, expected in cases:
+            with self.subTest(expr=expr):
+                self.assertEqual(interpreter.eval_bool(expr), expected)
+
+        # Test eval_bool failure 
+        self.assertRaises(NotImplementedError, interpreter.eval_bool, "string cannot be boolean")
+
+    def test_eval_or_complex(self):
+        interpreter = Interpreter()
+        cases = [
+            (Or(True, False), Or(False, True), True), 
+            (Or(False, False), Or(False, False), False),
+            (And(True, False), And(True, True), True),
+            (And(True, False), And(True, False), False),
+            (And(True, False), Or(True, False), True),
+            (And(False, False), Or(False, False), False),
+            (Not(True), Not(False), True),
+            (Not(True), Not(True), False),
+            (And(Not(False), True), Or(Not(True), False), True),
+        ]
+
+        for l_expr, r_expr, expected in cases:
+            with self.subTest(l_expr=l_expr, r_expr=r_expr):
+                self.assertEqual(interpreter.eval_or(Or(l_expr, r_expr)), expected)
+
+        # Expression uses Flip
+        self.assertEqual(type(interpreter.eval_or(Or(Flip(0.1), Flip(0.9)))), bool)
+
+
+    def test_eval_and_complex(self):
+        interpreter = Interpreter()
+        cases = [
+            (Or(True, False), Or(False, True), True), 
+            (Or(False, False), Or(False, False), False),
+            (And(True, False), And(True, True), False),
+            (And(True, False), And(True, False), False),
+            (And(True, False), Or(True, False), False),
+            (And(False, False), Or(False, False), False),
+            (Not(True), Not(False), False),
+            (Not(True), Not(True), False),
+            (And(Not(False), True), Or(Not(True), False), False),
+        ]
+
+        for l_expr, r_expr, expected in cases:
+            with self.subTest(l_expr=l_expr, r_expr=r_expr):
+                self.assertEqual(interpreter.eval_and(And(l_expr, r_expr)), expected)
+
+        # Expression uses Flip
+        self.assertEqual(type(interpreter.eval_and(And(Flip(0.1), Flip(0.9)))), bool)
+
+    def test_eval_not_complex(self):
+        interpreter = Interpreter()
+        cases = [
+            (Not(Not(Not(True))), True),
+            (And(True, True), False),
+            (And(True, False), True),
+            (Or(True, False), False),
+            (Or(False, False), True),
+        ]
+
+        for expr, expected in cases:
+            with self.subTest(expr=expr):
+                self.assertEqual(interpreter.eval_not(Not(expr)), expected)
+
+        # Expression uses Flip
+        self.assertEqual(type(interpreter.eval_not(Not(Flip(0.1)))), bool)
+
     def test_run_method(self):
         ast = [Assign("x", True), Assign("y", False), Assign("z", Flip(1)), Return("x")]
         self.assertEqual(Interpreter().run(ast), True)
+
+        
 
 
 if __name__ == "__main__":
