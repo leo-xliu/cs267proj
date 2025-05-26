@@ -1,7 +1,7 @@
 class Assign:
-    def __init__(self, name, expr):
+    def __init__(self, var_node, expr):
         # store left and right side of assign statements 
-        self.name = name
+        self.var_node = var_node
         self.expr = expr
 
 

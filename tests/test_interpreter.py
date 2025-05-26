@@ -12,9 +12,9 @@ class TestInterpreter(unittest.TestCase):
 
     def test_eval_assign_method(self):
         interpreter = Interpreter()
-        interpreter.eval_assign(Assign("x", Flip(0.5)))
-        interpreter.eval_assign(Assign("y", True))
-        interpreter.eval_assign(Assign("z", False))
+        interpreter.eval_assign(Assign(Variable("x"), Flip(0.5)))
+        interpreter.eval_assign(Assign(Variable("y"), True))
+        interpreter.eval_assign(Assign(Variable("z"), False))
 
         # Check existence of x
         self.assertIn("x", interpreter.vars)
@@ -28,7 +28,10 @@ class TestInterpreter(unittest.TestCase):
         self.assertEqual(interpreter.vars["z"], False)
 
         # Invalid Assignment 
-        self.assertRaises(NotImplementedError, interpreter.eval_assign, Assign("a", "to a string"))
+        self.assertRaises(NotImplementedError, interpreter.eval_assign, Assign(Variable("a"), "to a string"))
+
+        # Invalid Variable type 
+        self.assertRaises(TypeError, interpreter.eval_assign, Assign("a", "to a string"))
 
     def test_eval_variable(self):
         pass
@@ -38,10 +41,10 @@ class TestInterpreter(unittest.TestCase):
         interpreter.vars["x"] = True
 
         # Check nonexisting variable
-        self.assertRaises(NameError, interpreter.eval_return, Return("y"))
+        self.assertRaises(NameError, interpreter.eval_return, Return(Variable("y")))
 
         # Check existing variable
-        self.assertEqual(interpreter.eval_return(Return("x")), True)
+        self.assertEqual(interpreter.eval_return(Return(Variable("x"))), True)
 
     def test_eval_or_basic(self):
         interpreter = Interpreter()
@@ -169,7 +172,7 @@ class TestInterpreter(unittest.TestCase):
         self.assertEqual(type(interpreter.eval_not(Not(Flip(0.1)))), bool)
 
     def test_run_method(self):
-        ast = [Assign("x", True), Assign("y", False), Assign("z", Flip(1)), Return("x")]
+        ast = [Assign(Variable("x"), True), Assign(Variable("y"), False), Assign(Variable("z"), Flip(1)), Return(Variable("x"))]
         self.assertEqual(Interpreter().run(ast), True)
 
 

@@ -29,18 +29,23 @@ class Interpreter():
 
     def eval_assign(self, assign_node: Assign):
         # Evaluate right side of an assignment and assign it to variable
+        # left side will always be a variable node 
+        if not isinstance(assign_node.var_node, Variable):
+            raise TypeError(
+                f"Invalid type in assignment: {type(assign_node.var_node).__name__}"
+            )
         if isinstance(assign_node.expr, bool):
-            self.vars[assign_node.name] = assign_node.expr
+            self.vars[assign_node.var_node.name] = assign_node.expr
         elif isinstance(assign_node.expr, Flip):
-            self.vars[assign_node.name] = self.eval_flip(assign_node.expr)
+            self.vars[assign_node.var_node.name] = self.eval_flip(assign_node.expr)
         elif isinstance(assign_node.expr, Or):
-            self.vars[assign_node.name] = self.eval_or(assign_node.expr)
+            self.vars[assign_node.var_node.name] = self.eval_or(assign_node.expr)
         elif isinstance(assign_node.expr, And):
-            self.vars[assign_node.name] = self.eval_and(assign_node.expr)
+            self.vars[assign_node.var_node.name] = self.eval_and(assign_node.expr)
         elif isinstance(assign_node.expr, Not):
-            self.var[assign_node.name] = self.eval_not(assign_node.expr)
+            self.vars[assign_node.var_node.name] = self.eval_not(assign_node.expr)
         elif isinstance(assign_node.expr, Variable):
-            self.var[assign_node.name] = self.eval_variable(assign_node.expr)
+            self.vars[assign_node.var_node.name] = self.eval_variable(assign_node.expr)
         else:
             raise NotImplementedError(
                 f"Unknown assignment expression: {type(assign_node.expr).__name__}"
