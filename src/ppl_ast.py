@@ -1,3 +1,7 @@
+# Parsing should fail if program does not meet standards of language 
+# Compile time errors should be caught here 
+# For example, a statement that results in a bool must follow an assignment
+
 class Assign:
     def __init__(self, var_node, expr):
         # store left and right side of assign statements 
@@ -6,7 +10,8 @@ class Assign:
 
 
 # Node for return statement
-# currently very simple as only a single variable can be returned
+# May remove this and just use last line in program to indicate return
+# That works effortlessly since every statement in the language must result in a bool
 class Return:
     def __init__(self, expr):
         self.expr = expr
@@ -42,3 +47,10 @@ class Not:
 class Variable:
     def __init__(self, name):
         self.name = name
+
+# if_path if bool_cond else else_path
+class Conditional:
+    def __init__(self, bool_cond, if_path, else_path):
+        self.bool_cond = bool_cond
+        self.if_path = if_path
+        self.else_path = else_path

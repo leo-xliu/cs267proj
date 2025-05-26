@@ -13,6 +13,8 @@ class Interpreter():
                 self.eval_assign(statement)
             elif isinstance(statement, Return):
                 return self.eval_return(statement)
+            elif isinstance(statement, Conditional):
+                self.eval_conditional(statement)
             elif isinstance(statement, Flip):
                 # Trivial, do nothing 
                 continue
@@ -46,6 +48,8 @@ class Interpreter():
             self.vars[assign_node.var_node.name] = self.eval_not(assign_node.expr)
         elif isinstance(assign_node.expr, Variable):
             self.vars[assign_node.var_node.name] = self.eval_variable(assign_node.expr)
+        elif isinstance(assign_node.expr, Conditional):
+            self.vars[assign_node.var_node.name] = self.eval_conditional(assign_node.expr)
         else:
             raise NotImplementedError(
                 f"Unknown assignment expression: {type(assign_node.expr).__name__}"
@@ -83,10 +87,13 @@ class Interpreter():
             return self.eval_not(node)
         elif isinstance(node, Variable):
             return self.eval_variable(node)
+        elif isinstance(node, Conditional):
+            return self.eval_conditional(node)
         else:
             raise NotImplementedError(f"Boolean operand not supported: {type(node).__name__}")
 
     def eval_variable(self, var_node: Variable):
+        # Safe guard but not needed since other methods only call this if it is a variable type
         if not isinstance(var_node, Variable):
             raise TypeError(
                 f"Invalid variable evaluation type: {type(var_node).__name__}"
@@ -94,3 +101,9 @@ class Interpreter():
         if var_node.name not in self.vars:
             raise NameError(f"Undefined return variable: {var_node.name!r}")
         return self.vars[var_node.name]
+    
+    def eval_conditional(self, cond_node: Conditional):
+        if self.eval_bool(cond_node.bool_cond):
+            return self.eval_bool(cond_node.if_path)
+        else:
+            return self.eval_bool(cond_node.else_path)
