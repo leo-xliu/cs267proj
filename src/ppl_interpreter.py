@@ -11,7 +11,7 @@ class Interpreter():
         for statement in program:
             if isinstance(statement, Assign):
                 self.eval_assign(statement)
-            elif isinstance(statement, Return):
+            elif isinstance(statement, Return): 
                 return self.eval_return(statement)
             elif isinstance(statement, Conditional):
                 self.eval_conditional(statement)

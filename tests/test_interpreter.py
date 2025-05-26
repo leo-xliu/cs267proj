@@ -182,10 +182,32 @@ class TestInterpreter(unittest.TestCase):
         # Expression uses Flip
         self.assertEqual(type(interpreter.eval_not(Not(Flip(0.1)))), bool)
 
+    def test_eval_conditional(self):
+        interpreter = Interpreter()
+        self.assertEqual(interpreter.eval_conditional(Conditional(True, False, True)), False)
+        self.assertEqual(interpreter.eval_conditional(Conditional(False, False, True)), True)
+
+        interpreter.vars["x"] = True
+        self.assertEqual(interpreter.eval_conditional(Conditional(Variable("x"), False, True)), False)
+        interpreter.vars["y"] = False
+        self.assertEqual(interpreter.eval_conditional(Conditional(Variable("y"), False, True)), True)
+        self.assertEqual(interpreter.eval_conditional(Conditional(True, Variable("y"), Variable("x"))), False)
+
+        # Nested conditional
+        nested_cond = Conditional(True, False, True)
+        self.assertEqual(interpreter.eval_conditional(Conditional(True, nested_cond, True)), False)
+        self.assertEqual(interpreter.eval_conditional(Conditional(False, True, nested_cond)), False)
+
+        # Support Flips
+        self.assertEqual(type(interpreter.eval_conditional(Conditional(Flip(0.5), Flip(0.5), Flip(0.5)))), bool)
+
+        # Support boolean operators
+        self.assertEqual(interpreter.eval_conditional(Conditional(Or(True, False), And(True, False), Or(True, False))), False)
+
+
     def test_run_method(self):
         ast = [Assign(Variable("x"), True), Assign(Variable("y"), False), Assign(Variable("z"), Flip(1)), Return(Variable("x"))]
         self.assertEqual(Interpreter().run(ast), True)
-
 
 if __name__ == "__main__":
     unittest.main()
