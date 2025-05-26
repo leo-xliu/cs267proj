@@ -86,7 +86,11 @@ class Interpreter():
         else:
             raise NotImplementedError(f"Boolean operand not supported: {type(node).__name__}")
 
-    def eval_variable(self, var_node):
+    def eval_variable(self, var_node: Variable):
+        if not isinstance(var_node, Variable):
+            raise TypeError(
+                f"Invalid variable evaluation type: {type(var_node).__name__}"
+            )
         if var_node.name not in self.vars:
             raise NameError(f"Undefined return variable: {var_node.name!r}")
         return self.vars[var_node.name]

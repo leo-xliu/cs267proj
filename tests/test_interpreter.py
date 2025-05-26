@@ -7,8 +7,22 @@ from src.ppl_interpreter import Interpreter
 
 class TestInterpreter(unittest.TestCase):
     def test_eval_flip_method(self):
+        self.assertEqual(Interpreter().eval_flip(Flip(1)), True)
+        self.assertEqual(Interpreter().eval_flip(Flip(0)), False)
+
         # Do not need to test for invalid Flip objects since checked in Flip class
         self.assertEqual(type(Interpreter().eval_flip(Flip(0.5))), bool)
+
+    def test_eval_variable(self):
+        interpreter = Interpreter()
+        interpreter.vars["x"] = True
+        interpreter.vars["y"] = False
+        self.assertEqual(interpreter.eval_variable(Variable("x")), True)
+        self.assertEqual(interpreter.eval_variable(Variable("y")), False)
+        
+        # Not in dict
+        self.assertRaises(NameError, interpreter.eval_variable, Variable("z"))
+        self.assertRaises(TypeError, interpreter.eval_variable, "x")
 
     def test_eval_assign_method(self):
         interpreter = Interpreter()
@@ -32,9 +46,6 @@ class TestInterpreter(unittest.TestCase):
 
         # Invalid Variable type 
         self.assertRaises(TypeError, interpreter.eval_assign, Assign("a", "to a string"))
-
-    def test_eval_variable(self):
-        pass
 
     def test_eval_return_method(self):
         interpreter = Interpreter()
