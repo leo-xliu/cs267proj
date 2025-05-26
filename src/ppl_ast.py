@@ -54,3 +54,7 @@ class Conditional:
         self.bool_cond = bool_cond
         self.if_path = if_path
         self.else_path = else_path
+
+class Observe:
+    def __init__(self, expr):
+        self.expr = expr

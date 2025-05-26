@@ -1,5 +1,5 @@
 from src.ppl_parser import Parser
-from src.ppl_interpreter import Interpreter
+from src.ppl_interpreter import Interpreter, ObserveReject
 
 INFERENCE_ALGORITHM = {
     "monte_carlo": lambda parsed_program, n: monte_carlo_inference(parsed_program, n), 
@@ -15,12 +15,17 @@ def pr(program, inference="monte_carlo", n=1000):
 def monte_carlo_inference(parsed_program, n):
     # simple monte carlo inference by actually running program n times 
     true = 0 
+    rejects = 0
     for _ in range(n):
         interpreter = Interpreter()
-        res = interpreter.run(parsed_program)
+        try: 
+            res = interpreter.run(parsed_program)
+        except ObserveReject:
+            reject += 1
+            continue
         if res:
             true += 1
-    return true / n 
+    return true / (n - rejects) 
 
 
      

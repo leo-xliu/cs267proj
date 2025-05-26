@@ -1,11 +1,17 @@
 from src.ppl_ast import *
 import random
 
+class ObserveReject(Exception):
+    # For rejection sampling on conditioned probability 
+    # Catching an exception lets us bubble up chain of functions without return statements everywhere
+    pass
+
 class Interpreter():
-    def __init__(self):
+    def __init__(self, observe_reject=True):
         # Map variable names to stored value 
         self.vars = {}
-    
+        self.observe_reject = observe_reject
+
     def run(self, program):
         # Evaluate the entire program sequentially following the array of statements 
         for statement in program:
@@ -15,6 +21,8 @@ class Interpreter():
                 return self.eval_return(statement)
             elif isinstance(statement, Conditional):
                 self.eval_conditional(statement)
+            elif isinstance(statement, Observe):
+                self.eval_observe(statement)
             elif isinstance(statement, Flip):
                 # Trivial, do nothing 
                 continue
@@ -50,10 +58,13 @@ class Interpreter():
             self.vars[assign_node.var_node.name] = self.eval_variable(assign_node.expr)
         elif isinstance(assign_node.expr, Conditional):
             self.vars[assign_node.var_node.name] = self.eval_conditional(assign_node.expr)
+        elif isinstance(assign_node.expr, Observe):
+            self.vars[assign_node.var_node.name] = self.eval_observe(assign_node.expr)
         else:
             raise NotImplementedError(
                 f"Unknown assignment expression: {type(assign_node.expr).__name__}"
             )
+        return True
 
     def eval_flip(self, flip_node: Flip):
         # Evaluate the Flip construct
@@ -89,6 +100,8 @@ class Interpreter():
             return self.eval_variable(node)
         elif isinstance(node, Conditional):
             return self.eval_conditional(node)
+        elif isinstance(node, Observe):
+            return self.eval_observe(node)
         else:
             raise NotImplementedError(f"Boolean operand not supported: {type(node).__name__}")
 
@@ -107,3 +120,8 @@ class Interpreter():
             return self.eval_bool(cond_node.if_path)
         else:
             return self.eval_bool(cond_node.else_path)
+        
+    def eval_observe(self, obs_node: Observe):
+        if not self.eval_bool(obs_node.expr) and self.observe_reject:
+            raise ObserveReject()
+        return True
