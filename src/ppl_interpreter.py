@@ -86,6 +86,8 @@ class Interpreter():
             return self.eval_flip(node)
         elif isinstance(node, bool):
             return node
+        elif isinstance(node, Assign):
+            return self.eval_assign(node)
         elif isinstance(node, Or):
             return self.eval_or(node)
         elif isinstance(node, And):

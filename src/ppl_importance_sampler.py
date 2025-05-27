@@ -9,10 +9,17 @@ class Importance_Sampler():
         self.interpreter = Interpreter()
         self.p_weight, self.q_weight = 1, 1
 
-    def sample(self):
+    def sample(self, report=False):
         # Sample vars from "Q" distribution (i.e. q_prob)
         res = self.interpreter.run(self.program, mode="Importance sampling") 
         self.compute_weight()
+
+        if report:
+            print(f"Sample run variables = \n {self.interpreter.vars}\n")
+            print(f"p_weight = {self.p_weight}\n")
+            print(f"q_weight = {self.q_weight}\n")
+            print(f"return = {res}")
+
         return res * (self.p_weight / self.q_weight)
     
     def compute_weight(self):
@@ -97,6 +104,8 @@ class Importance_Sampler():
             self.get_prob_flip(node)
         elif isinstance(node, bool):
             return
+        elif isinstance(node, Assign):
+            self.get_prob_assign(node)
         elif isinstance(node, Or):
             self.get_prob_or(node)
         elif isinstance(node, And):

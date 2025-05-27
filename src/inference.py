@@ -4,6 +4,7 @@ from src.ppl_importance_sampler import Importance_Sampler
 
 INFERENCE_ALGORITHM = {
     "monte_carlo": lambda parsed_program, n: monte_carlo_inference(parsed_program, n), 
+    "importance_sampling": lambda parsed_program, n: importance_sampling_inference(parsed_program, n),
     # add other inference algorithms here
 }
 
@@ -23,7 +24,7 @@ def monte_carlo_inference(parsed_program, n):
             true += 1
     return true / n 
 
-def importance_sampling_inference(parsed_program, n):
+def importance_sampling_inference(parsed_program, n, report=False):
     # currently does not support observe ...
     expected = 0
     for _ in range(n):
