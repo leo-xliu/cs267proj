@@ -5,9 +5,13 @@ class Interpreter():
     def __init__(self):
         # Map variable names to stored value 
         self.vars = {}
+        self.mode = None
     
-    def run(self, program):
+    def run(self, program, mode=None):
         # Evaluate the entire program sequentially following the array of statements 
+        if mode is not None:
+            self.mode = "Importance sampling"
+
         for statement in program:
             if isinstance(statement, Assign):
                 self.eval_assign(statement)
@@ -57,9 +61,12 @@ class Interpreter():
 
     def eval_flip(self, flip_node: Flip):
         # Evaluate the Flip construct
-        if flip_node.prob > random.random():
-            return True
-        return False
+        prob = flip_node.prob if self.mode is None else flip_node.q_prob
+        if prob > random.random():
+            flip_node.trace = True
+        else:
+            flip_node.trace = False
+        return flip_node.trace
     
     def eval_return(self, return_node: Return):
         # Evaluate return by returning value stored in mapping
