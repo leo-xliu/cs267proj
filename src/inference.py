@@ -21,7 +21,7 @@ def monte_carlo_inference(parsed_program, n):
         try: 
             res = interpreter.run(parsed_program)
         except ObserveReject:
-            reject += 1
+            rejects += 1
             continue
         if res:
             true += 1
