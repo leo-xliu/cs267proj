@@ -18,7 +18,7 @@ def rejection_sampling(parsed_program, n):
     true = 0 
     rejects = 0
     for _ in range(n):
-        interpreter = Interpreter(observe_reject=True, mode=InferenceMode.REJECTION)
+        interpreter = Interpreter(mode=InferenceMode.REJECTION)
         try: 
             res = interpreter.run(parsed_program)
         except ObserveReject:
@@ -28,13 +28,14 @@ def rejection_sampling(parsed_program, n):
             true += 1
     return true / (n - rejects) 
 
-def importance_sampling_inference(parsed_program, n, report=False):
-    # currently does not support observe ...
-    expected = 0
+def importance_sampling_inference(parsed_program, n):
+    num, den = 0.0, 0.0
     for _ in range(n):
-        interpreter = Interpreter(observe_reject=False, mode=InferenceMode.IMPORTANCE)
-        expected += interpreter.run(parsed_program)
-    return expected / n
+        interp = Interpreter(mode=InferenceMode.IMPORTANCE)
+        res, w = interp.run(parsed_program)
+        num += (1 if res else 0) * w
+        den += w
+    return num/den
 
 
      

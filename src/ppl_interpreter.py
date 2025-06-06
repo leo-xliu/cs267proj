@@ -19,26 +19,17 @@ class Interpreter():
         self.vars = {}
         self.observe_reject = observe_reject
         self.mode = mode
+        self.weight = 1.0
     
     def run(self, program):
+        res = self.eval_program(program)
         if self.mode == InferenceMode.REJECTION:
-            return self._run_rejection(program)
+            return res
         elif self.mode == InferenceMode.IMPORTANCE:
-            return self._run_importance(program)
+            return res, self.weight
         else:
             raise ValueError(f"Unsupported mode: {self.mode!r}")
         
-    def _run_rejection(self, program):
-        return self.eval_program(program)
-
-    def _run_importance(self, program):
-        self.p_weight, self.q_weight = 1, 1
-        self.first_run = True
-        res = self.eval_program(program)
-        self.first_run = False
-        self.eval_program(program) # Compute weights
-        return res * (self.p_weight / self.q_weight)
-
     def eval_program(self, program):
         # Evaluate the entire program sequentially following the array of statements 
         for statement in program:
@@ -95,21 +86,22 @@ class Interpreter():
 
     def eval_flip(self, flip_node: Flip):
         # Evaluate the Flip construct
-        prob = flip_node.prob if self.mode is not InferenceMode.IMPORTANCE else flip_node.q_prob
-        prob_res = prob > random.random()
-        if self.mode is InferenceMode.IMPORTANCE and not self.first_run:
-            if flip_node.trace is None:
-                return prob_res 
-            if flip_node.trace:
-                self.p_weight *= flip_node.prob
-                self.q_weight *= flip_node.q_prob
+        if self.mode is InferenceMode.IMPORTANCE:
+            p = flip_node.prob
+            q = flip_node.q_prob
+            # Sample under q
+            z = q > random.random()
+
+            # importance weight update: p(z)/q(z)
+            if z:
+                self.weight *= (p/q)
             else:
-                self.p_weight *= 1 - flip_node.prob
-                self.q_weight *= 1 - flip_node.q_prob
-            flip_node.trace = None 
-        else:
-            flip_node.trace = prob_res
-        return prob_res
+                self.weight *= ((1-p)/(1-q))
+
+            return z
+
+        # else, plain prior sampling:
+        return flip_node.prob > random.random()
     
     def eval_return(self, return_node: Return):
         # Evaluate return by returning value stored in mapping
@@ -163,6 +155,10 @@ class Interpreter():
             return self.eval_bool(cond_node.else_path)
         
     def eval_observe(self, obs_node: Observe):
-        if not self.eval_bool(obs_node.expr) and self.observe_reject:
-            raise ObserveReject()
+        res = self.eval_bool(obs_node.expr)
+        if not res:
+            if self.mode is InferenceMode.REJECTION:
+                raise ObserveReject()
+            elif self.mode is InferenceMode.IMPORTANCE:
+                self.weight *= 0.0
         return True

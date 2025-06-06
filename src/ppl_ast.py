@@ -29,9 +29,6 @@ class Flip:
         self.prob = theta
         self.q_prob = 0.1 if theta < 0.01 else random.uniform(max(0.1, theta - 0.25), min(1, theta + 0.25))
 
-        # Record the sampled value
-        self.trace = None
-
 # May have been better if we created a single class for boolean operators 
 # and just have an attribute be the type
 class BinaryOperator:

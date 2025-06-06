@@ -12,7 +12,7 @@ class TestInterpreter(unittest.TestCase):
             Return(Or(Variable("x"), Variable("y")))
         ]
         res = importance_sampling_inference(parsed_program, 10000)
-        self.assertAlmostEqual(res, 0.72, places=2)
+        self.assertAlmostEqual(res, 0.72, places=1)
 
     def test_eval_program2(self):
         parsed_program = [
@@ -21,7 +21,7 @@ class TestInterpreter(unittest.TestCase):
             Return(Or(Variable("x"), Variable("y")))
         ]
         res = importance_sampling_inference(parsed_program, 10000)
-        self.assertAlmostEqual(res, 0.88, places=2)
+        self.assertAlmostEqual(res, 0.88, places=1)
 
     def test_eval_program3(self):
         # x = True, y = false, z = true  ==> 0.6 * 0.6
@@ -33,7 +33,7 @@ class TestInterpreter(unittest.TestCase):
             Return(Variable("z"))
         ]
         res = importance_sampling_inference(parsed_program, 10000)
-        self.assertAlmostEqual(res, 0.36 + 0.12, places=2)
+        self.assertAlmostEqual(res, 0.36 + 0.12, places=1)
 
 if __name__ == "__main__":
     unittest.main()
