@@ -1,3 +1,4 @@
+import random
 # Parsing should fail if program does not meet standards of language 
 # Compile time errors should be caught here 
 # For example, a statement that results in a bool must follow an assignment
@@ -26,6 +27,10 @@ class Flip:
             raise ValueError(
                 f"Flip argument must be a probability between 0 and 1: got {theta!r}")
         self.prob = theta
+        self.q_prob = 0.1 if theta < 0.01 else random.uniform(max(0.1, theta - 0.25), min(1, theta + 0.25))
+
+        # Record the sampled value
+        self.trace = None
 
 # May have been better if we created a single class for boolean operators 
 # and just have an attribute be the type

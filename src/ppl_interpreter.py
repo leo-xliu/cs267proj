@@ -1,16 +1,24 @@
 from src.ppl_ast import *
 import random
+from enum import Enum, auto
 
 class ObserveReject(Exception):
     # For rejection sampling on conditioned probability 
     # Catching an exception lets us bubble up chain of functions without return statements everywhere
     pass
 
+class InferenceMode(Enum):
+    REJECTION = auto()
+    IMPORTANCE = auto()
+    # Add more if needed
+
+
 class Interpreter():
-    def __init__(self, observe_reject=True):
+    def __init__(self, observe_reject=True, mode:InferenceMode=InferenceMode.REJECTION):
         # Map variable names to stored value 
         self.vars = {}
         self.observe_reject = observe_reject
+        self.mode = mode
 
     def run(self, program):
         # Evaluate the entire program sequentially following the array of statements 
@@ -68,9 +76,12 @@ class Interpreter():
 
     def eval_flip(self, flip_node: Flip):
         # Evaluate the Flip construct
-        if flip_node.prob > random.random():
-            return True
-        return False
+        prob = flip_node.prob if self.mode is not InferenceMode.IMPORTANCE else flip_node.q_prob
+        if prob > random.random():
+            flip_node.trace = True
+        else:
+            flip_node.trace = False
+        return flip_node.trace
     
     def eval_return(self, return_node: Return):
         # Evaluate return by returning value stored in mapping
@@ -90,6 +101,8 @@ class Interpreter():
             return self.eval_flip(node)
         elif isinstance(node, bool):
             return node
+        elif isinstance(node, Assign):
+            return self.eval_assign(node)
         elif isinstance(node, Or):
             return self.eval_or(node)
         elif isinstance(node, And):
