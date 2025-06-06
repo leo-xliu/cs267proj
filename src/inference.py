@@ -1,6 +1,5 @@
 from src.ppl_parser import Parser
-from src.ppl_interpreter import Interpreter, ObserveReject
-from src.ppl_importance_sampler import Importance_Sampler
+from src.ppl_interpreter import Interpreter, ObserveReject, InferenceMode
 
 INFERENCE_ALGORITHM = {
     "rejection_sampling": lambda parsed_program, n: rejection_sampling(parsed_program, n), 
@@ -19,7 +18,7 @@ def rejection_sampling(parsed_program, n):
     true = 0 
     rejects = 0
     for _ in range(n):
-        interpreter = Interpreter()
+        interpreter = Interpreter(observe_reject=True, mode=InferenceMode.REJECTION)
         try: 
             res = interpreter.run(parsed_program)
         except ObserveReject:
@@ -33,8 +32,8 @@ def importance_sampling_inference(parsed_program, n, report=False):
     # currently does not support observe ...
     expected = 0
     for _ in range(n):
-        importance_sampler = Importance_Sampler(parsed_program)
-        expected += importance_sampler.sample()
+        interpreter = Interpreter(observe_reject=False, mode=InferenceMode.IMPORTANCE)
+        expected += interpreter.run(parsed_program)
     return expected / n
 
 

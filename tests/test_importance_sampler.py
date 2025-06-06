@@ -1,8 +1,6 @@
 # Unit testing for importance sampling
 import unittest
 from src.ppl_ast import *
-from src.ppl_interpreter import Interpreter
-from src.ppl_importance_sampler import Importance_Sampler
 from src.inference import importance_sampling_inference
 
 class TestInterpreter(unittest.TestCase):
