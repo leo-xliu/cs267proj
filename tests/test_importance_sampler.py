@@ -23,28 +23,38 @@ class TestInterpreter(unittest.TestCase):
         res = importance_sampling_inference(parsed_program, 10000)
         self.assertAlmostEqual(res, 0.88, delta=0.03)
 
-    # invalid program
-    # def test_eval_program3(self):
+    def test_eval_program3(self):
         # x = True, y = false, z = true  ==> 0.6 * 0.6
         # x = False, y = false, z = true ==> 0.4 * 0.3
-        # parsed_program = [
-        #     Assign(Variable("x"), Flip(0.6), 
-        #            Conditional(Variable("x"), Assign(Variable("y"), Flip(0.4)), Assign(Variable("y"), Flip(0.7)))),
-        #     Assign(Variable("z"), Not(Variable("y")), Variable("z"))
-        # ]
-        # res = importance_sampling_inference(parsed_program, 10000)
-        # self.assertAlmostEqual(res, 0.36 + 0.12, delta=0.01)
+        parsed_program = [
+            Assign(
+                Variable("x"), Flip(0.6), 
+                Assign(
+                    Variable("y"), Conditional(Variable("x"), Flip(0.4), Flip(0.7)),
+                    Assign(
+                        Variable("z"), Not(Variable("y")), 
+                        Variable("z"))
+                )      
+            )
+        ]
+        res = importance_sampling_inference(parsed_program, 10000)
+        self.assertAlmostEqual(res, 0.36 + 0.12, delta=0.03)
 
-    # invalid program
-    # def test_eval_program4(self):
-    #     parsed_program = [
-    #         Assign(Variable("x"), Flip(0.6), 
-    #                Conditional(Variable("x"), Assign(Variable("y"), Flip(0.4)), Assign(Variable("y"), Flip(0.7)))),
-    #         Conditional(Variable("y"), Assign(Variable("x"), False), Assign(Variable("x"), Variable("x"))),
-    #         Variable("x")
-    #     ]
-    #     res = importance_sampling_inference(parsed_program, 10000)
-    #     self.assertAlmostEqual(res, 0.36, places=2)
+    def test_eval_program4(self):
+        parsed_program = [
+            Assign(
+                Variable("x"), Flip(0.6), 
+                Assign(
+                    Variable("y"), Conditional(Variable("x"), Flip(0.4), Flip(0.7)),
+                    Assign(
+                        Variable("x"), Conditional(Variable("y"), False, Variable("x")),
+                        Variable("x")
+                    )
+                )
+            )
+        ]
+        res = importance_sampling_inference(parsed_program, 10000)
+        self.assertAlmostEqual(res, 0.36, delta=0.01)
 
     def test_eval_program5(self):
         # 1 - 0.4*0.2 = 1 - 0.08 = 0.92
