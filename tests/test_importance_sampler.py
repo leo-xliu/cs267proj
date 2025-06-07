@@ -35,5 +35,53 @@ class TestInterpreter(unittest.TestCase):
         res = importance_sampling_inference(parsed_program, 10000)
         self.assertAlmostEqual(res, 0.36 + 0.12, delta=0.01)
 
+    def test_eval_program4(self):
+        parsed_program = [
+            Assign(Variable("x"), Flip(0.6)),
+            Conditional(Variable("x"), Assign(Variable("y"), Flip(0.4)), Assign(Variable("y"), Flip(0.7))),
+            Conditional(Variable("y"), Assign(Variable("x"), False), Assign(Variable("x"), Variable("x"))),
+            Return(Variable("x"))
+        ]
+        res = importance_sampling_inference(parsed_program, 10000)
+        self.assertAlmostEqual(res, 0.36, places=2)
+
+    def test_eval_program5(self):
+        # 1 - 0.4*0.2 = 1 - 0.08 = 0.92
+        parsed_program = [
+            Assign(Variable("x"), Flip(0.6)),
+            Assign(Variable("y"), Flip(0.8)),
+            Observe(Or(Variable("x"), Variable("y"))),
+            Return(Variable("x"))
+        ]
+        res = importance_sampling_inference(parsed_program, 10000)
+        self.assertAlmostEqual(res, 0.6 / 0.92, places=2)
+
+    def test_eval_program6(self):
+        # 1 - 0.999 * 0.999 = 0.001999
+        parsed_program = [
+            Assign(Variable("x"), Flip(0.001)),
+            Assign(Variable("y"), Flip(0.001)),
+            Observe(Or(Variable("x"), Variable("y"))),
+            Return(Variable("x"))
+        ]
+        res = importance_sampling_inference(parsed_program, 10000)
+        self.assertAlmostEqual(res, 0.001 / 0.001999, places=2)
+
+    def test_network_example(self):
+        parsed_program = [
+            Assign(Variable("S1"), True),
+            Assign(Variable("route"), Flip(0.5)),
+            Assign(Variable("S2"), Conditional(Variable("route"), Variable("S1"), False)),
+            Assign(Variable("S3"), Conditional(Variable("route"), False, Variable("S1"))),
+            Assign(Variable("S4"), Or(
+                And(Variable("S2"), Not(Flip(0.01))),
+                And(Variable("S3"), Not(Flip(0.001))),
+            )),
+            Observe(Not(Variable("S4"))),
+            Return(Variable("S2"))
+        ]
+        res = importance_sampling_inference(parsed_program, 10000)
+        self.assertAlmostEqual(res, (0.5 * 0.01) / (0.5 * (0.01 + 0.001)), places=2)
+
 if __name__ == "__main__":
     unittest.main()
