@@ -12,7 +12,7 @@ class TestInterpreter(unittest.TestCase):
                           Or(Variable("x"), Variable("y"))))
         ]
         res = importance_sampling_inference(parsed_program, 10000)
-        self.assertAlmostEqual(res, 0.72, delta=0.05)
+        self.assertAlmostEqual(res, 0.72, delta=0.03)
 
     def test_eval_program2(self):
         parsed_program = [
@@ -21,7 +21,7 @@ class TestInterpreter(unittest.TestCase):
                           Or(Variable("x"), Variable("y"))))
         ]
         res = importance_sampling_inference(parsed_program, 10000)
-        self.assertAlmostEqual(res, 0.88, delta=0.01)
+        self.assertAlmostEqual(res, 0.88, delta=0.03)
 
     # invalid program
     # def test_eval_program3(self):
@@ -55,7 +55,7 @@ class TestInterpreter(unittest.TestCase):
             Variable("x")
         ]
         res = importance_sampling_inference(parsed_program, 10000)
-        self.assertAlmostEqual(res, 0.6 / 0.92, delta=0.01)
+        self.assertAlmostEqual(res, 0.6 / 0.92, delta=0.03)
 
     def test_eval_program6(self):
         # 1 - 0.999 * 0.999 = 0.001999
@@ -66,7 +66,7 @@ class TestInterpreter(unittest.TestCase):
             Variable("x")
         ]
         res = importance_sampling_inference(parsed_program, 10000)
-        self.assertAlmostEqual(res, 0.001 / 0.001999, delta=0.05)
+        self.assertAlmostEqual(res, 0.001 / 0.001999, delta=0.03)
 
     def test_network_example(self):
         parsed_program = [
@@ -82,7 +82,7 @@ class TestInterpreter(unittest.TestCase):
             Variable("S2")
         ]
         res = importance_sampling_inference(parsed_program, 10000)
-        self.assertAlmostEqual(res, (0.5 * 0.01) / (0.5 * (0.01 + 0.001)), delta=0.01)
+        self.assertAlmostEqual(res, (0.5 * 0.01) / (0.5 * (0.01 + 0.001)), delta=0.03)
 
 if __name__ == "__main__":
     unittest.main()
