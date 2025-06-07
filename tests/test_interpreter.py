@@ -24,11 +24,12 @@ class TestInterpreter(unittest.TestCase):
         self.assertRaises(NameError, interpreter.eval_variable, Variable("z"))
         self.assertRaises(TypeError, interpreter.eval_variable, "x")
 
+    # Update eval testing to include second expression
     def test_eval_assign_method(self):
         interpreter = Interpreter()
-        interpreter.eval_assign(Assign(Variable("x"), Flip(0.5)))
-        interpreter.eval_assign(Assign(Variable("y"), True))
-        interpreter.eval_assign(Assign(Variable("z"), False))
+        interpreter.eval_assign(Assign(Variable("x"), Flip(0.5), 
+                                       Assign(Variable("y"), True, 
+                                              Assign(Variable("z"), False, True))))
 
         # Check existence of x
         self.assertIn("x", interpreter.vars)
@@ -42,20 +43,41 @@ class TestInterpreter(unittest.TestCase):
         self.assertEqual(interpreter.vars["z"], False)
 
         # Invalid Assignment 
-        self.assertRaises(NotImplementedError, interpreter.eval_assign, Assign(Variable("a"), "to a string"))
+        self.assertRaises(NotImplementedError, interpreter.eval_assign, Assign(Variable("a"), "to a string", True))
 
         # Invalid Variable type 
-        self.assertRaises(TypeError, interpreter.eval_assign, Assign("a", "to a string"))
+        self.assertRaises(TypeError, interpreter.eval_assign, Assign("a", "to a string", True))
 
-    def test_eval_return_method(self):
+    def test_eval_statement(self):
         interpreter = Interpreter()
-        interpreter.vars["x"] = True
 
-        # Check nonexisting variable
-        self.assertRaises(NameError, interpreter.eval_return, Return(Variable("y")))
+        # Add test cases here 
+        cases = [
+            (Flip(1), True),
+            (Flip(0), False),
+            (True, True),
+            (False, False),
+            (Or(False, False), False),
+            (Or(False, True), True),
+            (Or(True, False), True),
+            (Or(True, True), True),
+            (And(False, False), False),
+            (And(False, True), False),
+            (And(True, False), False),
+            (And(True, True), True),
+            (Not(True), False),
+            (Not(False), True),
+        ]
 
-        # Check existing variable
-        self.assertEqual(interpreter.eval_return(Return(Variable("x"))), True)
+        for expr, expected in cases:
+            with self.subTest(expr=expr):
+                self.assertEqual(interpreter.eval_statement(expr, True), expected)
+
+        # Test eval_bool failure 
+        self.assertRaises(NotImplementedError, interpreter.eval_statement, "string cannot be boolean", True)
+
+    def test_eval_program(self):
+        pass        
 
     def test_eval_or_basic(self):
         interpreter = Interpreter()
@@ -93,34 +115,6 @@ class TestInterpreter(unittest.TestCase):
         for expr, expected in cases:
             with self.subTest(expr=expr):
                 self.assertEqual(interpreter.eval_not(Not(expr)), expected)
-
-    def test_eval_bool(self):
-        interpreter = Interpreter()
-
-        # Add test cases here 
-        cases = [
-            (Flip(1), True),
-            (Flip(0), False),
-            (True, True),
-            (False, False),
-            (Or(False, False), False),
-            (Or(False, True), True),
-            (Or(True, False), True),
-            (Or(True, True), True),
-            (And(False, False), False),
-            (And(False, True), False),
-            (And(True, False), False),
-            (And(True, True), True),
-            (Not(True), False),
-            (Not(False), True),
-        ]
-
-        for expr, expected in cases:
-            with self.subTest(expr=expr):
-                self.assertEqual(interpreter.eval_bool(expr), expected)
-
-        # Test eval_bool failure 
-        self.assertRaises(NotImplementedError, interpreter.eval_bool, "string cannot be boolean")
 
     def test_eval_or_complex(self):
         interpreter = Interpreter()
@@ -206,7 +200,10 @@ class TestInterpreter(unittest.TestCase):
 
 
     def test_run_method(self):
-        ast = [Assign(Variable("x"), True), Assign(Variable("y"), False), Assign(Variable("z"), Flip(1)), Return(Variable("x"))]
+        ast = [Assign(Variable("x"), True,
+                      Assign(Variable("y"), False,
+                            Assign(Variable("z"), Flip(1), 
+                                   Variable("x"))))]
         self.assertEqual(Interpreter().run(ast), True)
 
 if __name__ == "__main__":

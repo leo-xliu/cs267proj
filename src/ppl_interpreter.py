@@ -12,7 +12,6 @@ class InferenceMode(Enum):
     IMPORTANCE = auto()
     # Add more if needed
 
-
 class Interpreter():
     def __init__(self, observe_reject=True, mode:InferenceMode=InferenceMode.REJECTION):
         # Map variable names to stored value 
@@ -32,28 +31,37 @@ class Interpreter():
         
     def eval_program(self, program):
         # Evaluate the entire program sequentially following the array of statements 
-        for statement in program:
-            if isinstance(statement, Assign):
-                self.eval_assign(statement)
-            elif isinstance(statement, Return): 
-                return self.eval_return(statement)
-            elif isinstance(statement, Conditional):
-                self.eval_conditional(statement)
-            elif isinstance(statement, Observe):
-                self.eval_observe(statement)
-            elif isinstance(statement, Flip):
-                # Trivial, do nothing 
-                continue
-            elif isinstance(statement, And):
-                continue
-            elif isinstance(statement, Or):
-                continue
-            elif isinstance(statement, Not):
-                continue
-            else: # Unknown statement type
-                raise NotImplementedError(
-                    f"Unknown statement type: {type(statement).__name__}"
-                )
+        for i in range(0, len(program)-1):
+            self.eval_statement(program[i])
+        return self.eval_statement(program[-1], True)
+            
+    def eval_statement(self, statement, require_return=False):
+        if isinstance(statement, Assign):
+            return self.eval_assign(statement)
+        elif isinstance(statement, Conditional):
+            return self.eval_conditional(statement)
+        elif isinstance(statement, Observe):
+            return self.eval_observe(statement)
+        elif not require_return: # Short circuit
+            # Only issue is we will never have an unknown statement for no required return
+            # This should be taken care by the parser anyway
+            return
+        elif isinstance(statement, bool):
+            return statement
+        elif isinstance(statement, Flip):
+            return self.eval_flip(statement)
+        elif isinstance(statement, And):
+            return self.eval_and(statement)
+        elif isinstance(statement, Or):
+            return self.eval_or(statement)
+        elif isinstance(statement, Not):
+            return self.eval_not(statement)
+        elif isinstance(statement, Variable):
+            return self.eval_variable(statement)
+        else: # Unknown statement type
+            raise NotImplementedError(
+                f"Unknown statement type: {type(statement).__name__}"
+            )
 
     def eval_assign(self, assign_node: Assign):
         # Evaluate right side of an assignment and assign it to variable
@@ -62,27 +70,10 @@ class Interpreter():
             raise TypeError(
                 f"Invalid type in assignment: {type(assign_node.var_node).__name__}"
             )
-        if isinstance(assign_node.expr, bool):
-            self.vars[assign_node.var_node.name] = assign_node.expr
-        elif isinstance(assign_node.expr, Flip):
-            self.vars[assign_node.var_node.name] = self.eval_flip(assign_node.expr)
-        elif isinstance(assign_node.expr, Or):
-            self.vars[assign_node.var_node.name] = self.eval_or(assign_node.expr)
-        elif isinstance(assign_node.expr, And):
-            self.vars[assign_node.var_node.name] = self.eval_and(assign_node.expr)
-        elif isinstance(assign_node.expr, Not):
-            self.vars[assign_node.var_node.name] = self.eval_not(assign_node.expr)
-        elif isinstance(assign_node.expr, Variable):
-            self.vars[assign_node.var_node.name] = self.eval_variable(assign_node.expr)
-        elif isinstance(assign_node.expr, Conditional):
-            self.vars[assign_node.var_node.name] = self.eval_conditional(assign_node.expr)
-        elif isinstance(assign_node.expr, Observe):
-            self.vars[assign_node.var_node.name] = self.eval_observe(assign_node.expr)
-        else:
-            raise NotImplementedError(
-                f"Unknown assignment expression: {type(assign_node.expr).__name__}"
-            )
-        return True
+        self.vars[assign_node.var_node.name] = self.eval_statement(assign_node.expr, True)
+
+        # Enforce second expression
+        return self.eval_statement(assign_node.next_expr, True)
 
     def eval_flip(self, flip_node: Flip):
         # Evaluate the Flip construct
@@ -97,46 +88,19 @@ class Interpreter():
                 self.weight *= (p/q)
             else:
                 self.weight *= ((1-p)/(1-q))
-
             return z
 
         # else, plain prior sampling:
         return flip_node.prob > random.random()
     
-    def eval_return(self, return_node: Return):
-        # Evaluate return by returning value stored in mapping
-        return self.eval_bool(return_node.expr)
-    
     def eval_or(self, or_node: Or):
-        return self.eval_bool(or_node.l_expr) or self.eval_bool(or_node.r_expr)
+        return self.eval_statement(or_node.l_expr, True) or self.eval_statement(or_node.r_expr, True)
 
     def eval_and(self, and_node: And):
-        return self.eval_bool(and_node.l_expr) and self.eval_bool(and_node.r_expr)
+        return self.eval_statement(and_node.l_expr, True) and self.eval_statement(and_node.r_expr, True)
 
     def eval_not(self, not_node: Not):
-        return not self.eval_bool(not_node.expr)
-
-    def eval_bool(self, node):
-        if isinstance(node, Flip):
-            return self.eval_flip(node)
-        elif isinstance(node, bool):
-            return node
-        elif isinstance(node, Assign):
-            return self.eval_assign(node)
-        elif isinstance(node, Or):
-            return self.eval_or(node)
-        elif isinstance(node, And):
-            return self.eval_and(node)
-        elif isinstance(node, Not):
-            return self.eval_not(node)
-        elif isinstance(node, Variable):
-            return self.eval_variable(node)
-        elif isinstance(node, Conditional):
-            return self.eval_conditional(node)
-        elif isinstance(node, Observe):
-            return self.eval_observe(node)
-        else:
-            raise NotImplementedError(f"Boolean operand not supported: {type(node).__name__}")
+        return not self.eval_statement(not_node.expr, True)
 
     def eval_variable(self, var_node: Variable):
         # Safe guard but not needed since other methods only call this if it is a variable type
@@ -149,13 +113,13 @@ class Interpreter():
         return self.vars[var_node.name]
     
     def eval_conditional(self, cond_node: Conditional):
-        if self.eval_bool(cond_node.bool_cond):
-            return self.eval_bool(cond_node.if_path)
+        if self.eval_statement(cond_node.bool_cond, True):
+            return self.eval_statement(cond_node.if_path, True)
         else:
-            return self.eval_bool(cond_node.else_path)
+            return self.eval_statement(cond_node.else_path, True)
         
     def eval_observe(self, obs_node: Observe):
-        res = self.eval_bool(obs_node.expr)
+        res = self.eval_statement(obs_node.expr, True)
         if not res:
             if self.mode is InferenceMode.REJECTION:
                 raise ObserveReject()

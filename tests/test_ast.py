@@ -5,9 +5,6 @@ class TestASTComponents(unittest.TestCase):
     def test_assign_object_initialization(self):
         pass
 
-    def test_return_object_initialization(self):
-        pass
-
     def test_flip_object_initialization(self):
         # Assigning valid probabilities
         self.assertEqual(Flip(0.5).prob, 0.5)
@@ -29,6 +26,12 @@ class TestASTComponents(unittest.TestCase):
         pass
 
     def test_variable_initialization(self):
+        pass
+
+    def test_observe_initialization(self):
+        pass
+
+    def test_conditional_initialization(self):
         pass
 
 if __name__ == "__main__":

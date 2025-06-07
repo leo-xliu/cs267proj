@@ -3,19 +3,15 @@ import random
 # Compile time errors should be caught here 
 # For example, a statement that results in a bool must follow an assignment
 
+# Stores variable assignment with expresssion 
+# Also stores following expression which enforces it as a valid part of the language 
+# Every construct must result in a boolean 
+# In order to do multiple assignments in a row, must nest into next_expr (tree structure)
 class Assign:
-    def __init__(self, var_node, expr):
-        # store left and right side of assign statements 
+    def __init__(self, var_node, expr, next_expr=None):
         self.var_node = var_node
         self.expr = expr
-
-
-# Node for return statement
-# May remove this and just use last line in program to indicate return
-# That works effortlessly since every statement in the language must result in a bool
-class Return:
-    def __init__(self, expr):
-        self.expr = expr
+        self.next_expr = next_expr
 
 class Flip:
     def __init__(self, theta):
