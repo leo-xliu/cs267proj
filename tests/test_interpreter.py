@@ -46,7 +46,8 @@ class TestInterpreter(unittest.TestCase):
         self.assertRaises(NotImplementedError, interpreter.eval_assign, Assign(Variable("a"), "to a string", True))
 
         # Invalid Variable type 
-        self.assertRaises(TypeError, interpreter.eval_assign, Assign("a", "to a string", True))
+        with self.assertRaises(TypeError):
+            interpreter.eval_assign(Assign("a", "to a string", True))
 
     def test_eval_statement(self):
         interpreter = Interpreter()
