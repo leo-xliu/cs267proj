@@ -94,5 +94,56 @@ class TestInterpreter(unittest.TestCase):
         res = importance_sampling_inference(parsed_program, 10000)
         self.assertAlmostEqual(res, (0.5 * 0.01) / (0.5 * (0.01 + 0.001)), delta=0.03)
 
+    '''
+        x1 = Flip(0.5)
+        y = if x1 then Flip(0.7) else Flip(0.4)
+        observe(x1 or y == True)
+        x2 = if y then Flip(0.9) else Flip(0.2)
+        observe(x2 == True)
+        return x2
+    '''
+    def test_eval_program7(self):
+        parsed_program = [
+            Assign(
+                Variable("x"), Flip(0.5), 
+                Assign(
+                    Variable("y"), Conditional(Variable("x"), Flip(0.7), Flip(0.4)),
+                    Observe(Or(Variable("x"), Variable("y")))
+                )
+            ),
+            Assign(
+                Variable("x"), Conditional(Variable("y"), Flip(0.9), Flip(0.2)),
+                Observe(Variable("x"))
+            ),
+            Variable("x")
+        ]
+        res = importance_sampling_inference(parsed_program, 10000)
+        self.assertAlmostEqual(res, 1, delta=0.03)
+
+    def test_eval_program8(self):
+        parsed_program = [
+            Assign(
+                Variable("x"), Flip(0.5), 
+                Assign(
+                    Variable("y"), Conditional(Variable("x"), Flip(0.7), Flip(0.4)),
+                    Observe(Or(Variable("x"), Variable("y")))
+                )
+            ),
+            Assign(
+                Variable("x"), Conditional(Variable("y"), Flip(0.9), Flip(0.2)),
+                Variable("x")
+            ),
+        ]
+        # (x=True, y=True, x=True)  = 0.5 * 0.7 * 0.9 = 0.315
+        # (x=True, y=True, x=False) = 0.5 * 0.7 * 0.1 = 0.035
+        # (x=True, y=False, x=True) = 0.5 * 0.3 * 0.2 = 0.03
+        # (x=True, y=False, x=False) = 0.5 * 0.3 * 0.8 = 0.12
+        # (x=False, y=True, x=True) = 0.5 * 0.4 * 0.9 = 0.18
+        # (x=False, y=True, x=False) = 0.5 * 0.4 * 0.1 = 0.02
+        # x=True = 0.525
+        # x=False = 0.175
+        res = importance_sampling_inference(parsed_program, 10000)
+        self.assertAlmostEqual(res, 0.75, delta=0.03)
+
 if __name__ == "__main__":
     unittest.main()
