@@ -10,6 +10,7 @@ class ObserveReject(Exception):
 class InferenceMode(Enum):
     REJECTION = auto()
     IMPORTANCE = auto()
+    MCMC = auto()
     # Add more if needed
 
 class Interpreter():
@@ -25,6 +26,8 @@ class Interpreter():
         if self.mode == InferenceMode.REJECTION:
             return res
         elif self.mode == InferenceMode.IMPORTANCE:
+            return res, self.weight
+        elif self.mode == InferenceMode.MCMC:
             return res, self.weight
         else:
             raise ValueError(f"Unsupported mode: {self.mode!r}")
@@ -89,7 +92,15 @@ class Interpreter():
             else:
                 self.weight *= ((1-p)/(1-q))
             return z
+        
+        elif self.mode is InferenceMode.MCMC:
+            p = flip_node.prob
+            z = random.random() < p
 
+            # weight is the joint prob (z, obs)
+            self.weight *= p if z else (1-p)
+            return z
+        
         # else, plain prior sampling:
         return flip_node.prob > random.random()
     
@@ -124,5 +135,7 @@ class Interpreter():
             if self.mode is InferenceMode.REJECTION:
                 raise ObserveReject()
             elif self.mode is InferenceMode.IMPORTANCE:
+                self.weight *= 0.0
+            elif self.mode is InferenceMode.MCMC:
                 self.weight *= 0.0
         return True
