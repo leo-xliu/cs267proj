@@ -4,6 +4,7 @@ from src.ppl_interpreter import Interpreter, ObserveReject, InferenceMode
 INFERENCE_ALGORITHM = {
     "rejection_sampling": lambda parsed_program, n: rejection_sampling(parsed_program, n), 
     "importance_sampling": lambda parsed_program, n: importance_sampling_inference(parsed_program, n),
+    "mcmc": lambda parsed_program, n: markov_chain_monte_carlo_metropolis_hastings(parsed_program, n),
     # add other inference algorithms here
 }
 
@@ -37,6 +38,25 @@ def importance_sampling_inference(parsed_program, n):
         den += w
     return num/den
 
+def markov_chain_monte_carlo_metropolis_hastings(parsed_program, n):
+    burn_in = max(10, n // 10) # use 10% of iterations as burn in
+    true, kept = 0, 0
 
+    curr_interp = Interpreter(mode=InferenceMode.MCMC)
+    curr_res, curr_weight = curr_interp.run(parsed_program)
+
+    for i in range(burn_in + n):
+        new_interp = Interpreter(mode=InferenceMode.MCMC)
+        new_res, new_weight = new_interp.run(parsed_program)
+        
+        if curr_weight == 0 or new_weight > 0:
+            curr_res, curr_weight = new_res, new_weight
+
+        if i >= burn_in and curr_weight > 0:
+            kept += 1
+            if curr_res:
+                true += 1
+
+    return true / kept if kept else 0.0
      
             
