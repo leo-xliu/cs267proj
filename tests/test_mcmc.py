@@ -1,7 +1,7 @@
 # Unit Testing for Metropolis Hastings MCMC
 import unittest
 from src.ppl_ast import *
-from src.inference import markov_chain_monte_carlo_metropolis_hastings, rejection_sampling
+from src.inference import markov_chain_monte_carlo_metropolis_hastings
 
 class TestInterpreter(unittest.TestCase):
     def test_eval_program1(self):
@@ -81,7 +81,7 @@ class TestInterpreter(unittest.TestCase):
                           Observe(Or(Variable("x"), Variable("y"))))),
             Variable("x")
         ]
-        res = rejection_sampling(parsed_program, 500000)
+        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 500000)
         self.assertAlmostEqual(res, 0.001 / 0.001999, delta=0.035)
 
     def test_eval_program7(self):
