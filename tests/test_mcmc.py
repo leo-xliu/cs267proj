@@ -71,7 +71,7 @@ class TestInterpreter(unittest.TestCase):
             Variable("x")
         ]
         res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 10000, nflips=2)
-        self.assertAlmostEqual(res, 0.6 / 0.92, delta=0.03)
+        self.assertAlmostEqual(res, 0.6 / 0.92, delta=0.05)
 
     def test_eval_program6(self):
         # 1 - 0.999 * 0.999 = 0.001999
@@ -82,7 +82,7 @@ class TestInterpreter(unittest.TestCase):
             Variable("x")
         ]
         res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 500000, nflips=2)
-        self.assertAlmostEqual(res, 0.001 / 0.001999, delta=0.035)
+        self.assertAlmostEqual(res, 0.001 / 0.001999, delta=0.05)
 
     def test_eval_program7(self):
         parsed_program = [

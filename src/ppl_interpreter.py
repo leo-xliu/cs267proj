@@ -25,6 +25,8 @@ class Interpreter():
         self.initial_state_set = False
         self.nflips = nflips
         self.flip_idx = 0
+        self.reject_proposal = False
+        self.prev_weight = 1.0
 
     def set_mode(self, new_mode):
         self.mode = new_mode
@@ -38,13 +40,17 @@ class Interpreter():
                     res = self.eval_program(program)
                     self.set_mode(InferenceMode.MCMC)
                     self.initial_state_set = True
+                    self.prev_weight = self.weight
+                    print(f"self.prev_weight = {self.prev_weight}\n")
                     return res, self.weight
                 except ObserveReject:
                     # reset
                     self.weight = 1.0
                     continue  
 
-        self.weight = 1.0   # reset
+        # reset
+        self.weight = 1.0
+        self.reject_proposal = False
         res = self.eval_program(program)
 
         if self.mode == InferenceMode.REJECTION:
@@ -54,6 +60,10 @@ class Interpreter():
         elif self.mode == InferenceMode.MCMC:
             # in next proposal state, update next Flip        
             self.flip_idx = (self.flip_idx + 1) % self.nflips
+            # acceptance rate
+            alpha = min(1, self.weight / self.prev_weight)
+            if not self.weight or random.random() < alpha:
+                self.reject_proposal = True
             return res, self.weight
         else:
             raise ValueError(f"Unsupported mode: {self.mode!r}")
@@ -120,9 +130,16 @@ class Interpreter():
             return z
         
         elif self.mode is InferenceMode.MCMC:
+            if self.reject_proposal:
+                flip_node.trace = flip_node.prev_trace
+            else:
+                flip_node.prev_trace = flip_node.trace
+
             # generate proposal state
+            # only update 1 variable each run iteration
             if flip_node.id == self.flip_idx:
                 flip_node.trace = random.random() < p
+
         elif self.mode is InferenceMode.REJECTION:
             flip_node.trace = random.random() < p
         else:

@@ -34,6 +34,7 @@ class Flip:
 
         # MCMC
         self.id = id
+        self.prev_trace = None
         self.trace = None
 
     def __eq__(self, other):

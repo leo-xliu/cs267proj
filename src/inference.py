@@ -44,11 +44,9 @@ def markov_chain_monte_carlo_metropolis_hastings(parsed_program, n, nflips=0):
 
     interp = Interpreter(mode=InferenceMode.MCMC, nflips=nflips)
     curr_res, curr_weight = interp.run(parsed_program)
-    # print(f"curr_res = {curr_res}, curr_weight = {curr_weight}\n")
 
     for i in range(burn_in + n):
         new_res, new_weight = interp.run(parsed_program)
-        # print(f"new_res = {curr_res}, new_weight = {curr_weight}\n")
         
         if curr_weight == 0 or new_weight > 0:
             curr_res, curr_weight = new_res, new_weight
