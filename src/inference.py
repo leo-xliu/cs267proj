@@ -1,4 +1,5 @@
 from src.ppl_parser import Parser
+from src.tokenizer import tokenize
 from src.ppl_interpreter import Interpreter, ObserveReject, InferenceMode
 
 INFERENCE_ALGORITHM = {
@@ -8,9 +9,10 @@ INFERENCE_ALGORITHM = {
     # add other inference algorithms here
 }
 
-def pr(program, inference="rejection_sampling", n=1000):
+def pr(program, inference="rejection_sampling", n=10000):
     parser = Parser()
-    parsed_program = parser.parse(program)
+    tokens = tokenize(program)
+    parsed_program = parser.parse(tokens)
     prob_true = INFERENCE_ALGORITHM[inference](parsed_program, n)
     print(f"True ==> {prob_true:.4f},  False ==> {1-prob_true:.4f}")
     
