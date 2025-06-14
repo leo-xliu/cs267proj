@@ -40,6 +40,9 @@ class Parser:
         _, name = self.eat("VAR")
         self.eat("ASSIGN")
         expr = self.parse_expr()
+        # remove all empty lines first 
+        while self.peek()[0] == "NEWLINE":
+            self.eat("NEWLINE")
 
         # reinforce second expression 
         next_expr = self.parse_next_line()
