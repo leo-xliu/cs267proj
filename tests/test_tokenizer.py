@@ -205,8 +205,8 @@ class TestTokenize(unittest.TestCase):
         self.assertEqual(res[57][0], "NEWLINE")
         self.assertEqual(res[58][0], "VAR")
         self.assertEqual(res[58][1], "S2")
-
-
+        self.assertEqual(res[59][0], "NEWLINE")
+        self.assertEqual(res[60][0], "EOP")
 
 if __name__ == "__main__":
     unittest.main()

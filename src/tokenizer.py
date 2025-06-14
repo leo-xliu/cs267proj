@@ -40,4 +40,5 @@ def tokenize(program):
             break
         else:
             raise SyntaxError(f"Unexpected character {program[pos]!r}")
+    tokens.append(("EOP", "")) # Represents program end
     return tokens
