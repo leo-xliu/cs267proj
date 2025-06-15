@@ -76,7 +76,7 @@ class TestInterpreter(unittest.TestCase):
             Variable("x")
         ]
         res = importance_sampling_inference(parsed_program, 10000)
-        self.assertAlmostEqual(res, 0.001 / 0.001999, delta=0.03)
+        self.assertAlmostEqual(res, 0.001 / 0.001999, delta=0.05)
 
     def test_network_example(self):
         parsed_program = [

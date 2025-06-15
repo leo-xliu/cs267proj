@@ -21,7 +21,7 @@ class Assign:
             and (self.expr == other.expr) and (self.next_expr == other.next_expr)
 
 class Flip:
-    def __init__(self, theta):
+    def __init__(self, theta, id=-1):
         # store flip function with its probability 
         if not isinstance(theta, (int, float)):
             raise TypeError(
@@ -31,6 +31,11 @@ class Flip:
                 f"Flip argument must be a probability between 0 and 1: got {theta!r}")
         self.prob = theta
         self.q_prob = 0.1 if theta < 0.01 else random.uniform(max(0.1, theta - 0.25), min(1, theta + 0.25))
+
+        # MCMC
+        self.id = id
+        self.prev_trace = None
+        self.trace = None
 
     def __eq__(self, other):
         # two instances of Flip may have different q_prob since it is "randomly" chosen

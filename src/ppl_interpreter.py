@@ -14,20 +14,56 @@ class InferenceMode(Enum):
     # Add more if needed
 
 class Interpreter():
-    def __init__(self, observe_reject=True, mode:InferenceMode=InferenceMode.REJECTION):
+    def __init__(self, observe_reject=True, mode:InferenceMode=InferenceMode.REJECTION, nflips:int=0):
         # Map variable names to stored value 
         self.vars = {}
         self.observe_reject = observe_reject
         self.mode = mode
         self.weight = 1.0
-    
-    def run(self, program):
+
+        # MCMC
+        self.initial_state_set = False
+        self.nflips = nflips
+        self.flip_idx = 0
+        self.reject_proposal = False
+        self.prev_weight = 1.0
+
+    def set_mode(self, new_mode):
+        self.mode = new_mode
+
+    def run(self, program):  
+        if self.initial_state_set:
+            # generate initial valid state
+            while True:
+                try:
+                    self.set_mode(InferenceMode.REJECTION)
+                    res = self.eval_program(program)
+                    self.set_mode(InferenceMode.MCMC)
+                    self.initial_state_set = True
+                    self.prev_weight = self.weight
+                    print(f"self.prev_weight = {self.prev_weight}\n")
+                    return res, self.weight
+                except ObserveReject:
+                    # reset
+                    self.weight = 1.0
+                    continue  
+
+        # reset
+        self.weight = 1.0
+        self.reject_proposal = False
         res = self.eval_program(program)
+
         if self.mode == InferenceMode.REJECTION:
             return res
         elif self.mode == InferenceMode.IMPORTANCE:
             return res, self.weight
         elif self.mode == InferenceMode.MCMC:
+            # in next proposal state, update next Flip        
+            self.flip_idx = (self.flip_idx + 1) % self.nflips
+            # acceptance rate
+            alpha = min(1, self.weight / self.prev_weight)
+            if not self.weight or random.random() < alpha:
+                self.reject_proposal = True
             return res, self.weight
         else:
             raise ValueError(f"Unsupported mode: {self.mode!r}")
@@ -80,8 +116,8 @@ class Interpreter():
 
     def eval_flip(self, flip_node: Flip):
         # Evaluate the Flip construct
+        p = flip_node.prob
         if self.mode is InferenceMode.IMPORTANCE:
-            p = flip_node.prob
             q = flip_node.q_prob
             # Sample under q
             z = q > random.random()
@@ -94,15 +130,24 @@ class Interpreter():
             return z
         
         elif self.mode is InferenceMode.MCMC:
-            p = flip_node.prob
-            z = random.random() < p
+            if self.reject_proposal:
+                flip_node.trace = flip_node.prev_trace
+            else:
+                flip_node.prev_trace = flip_node.trace
 
-            # weight is the joint prob (z, obs)
-            self.weight *= p if z else (1-p)
-            return z
-        
-        # else, plain prior sampling:
-        return flip_node.prob > random.random()
+            # generate proposal state
+            # only update 1 variable each run iteration
+            if flip_node.id == self.flip_idx:
+                flip_node.trace = random.random() < p
+
+        elif self.mode is InferenceMode.REJECTION:
+            flip_node.trace = random.random() < p
+        else:
+            raise ValueError(f"{self.mode} is not a valid sampling algorithm.")
+
+        # weight is the joint prob (z, obs)
+        self.weight *= p if flip_node.trace else (1-p)
+        return flip_node.trace
     
     def eval_or(self, or_node: Or):
         return self.eval_statement(or_node.l_expr, True) or self.eval_statement(or_node.r_expr, True)
@@ -138,4 +183,5 @@ class Interpreter():
                 self.weight *= 0.0
             elif self.mode is InferenceMode.MCMC:
                 self.weight *= 0.0
+                return False
         return True
