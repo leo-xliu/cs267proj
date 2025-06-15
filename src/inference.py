@@ -3,20 +3,23 @@ from src.tokenizer import tokenize
 from src.ppl_interpreter import Interpreter, ObserveReject, InferenceMode
 
 INFERENCE_ALGORITHM = {
-    "rejection_sampling": lambda parsed_program, n: rejection_sampling(parsed_program, n), 
-    "importance_sampling": lambda parsed_program, n: importance_sampling_inference(parsed_program, n),
-    "mcmc": lambda parsed_program, n: markov_chain_monte_carlo_metropolis_hastings(parsed_program, n),
+    "rejection_sampling": lambda parsed_program, n, nflips: rejection_sampling(parsed_program, n, nflips), 
+    "importance_sampling": lambda parsed_program, n, nflips: importance_sampling_inference(parsed_program, n, nflips),
+    "mcmc": lambda parsed_program, n, nflips: markov_chain_monte_carlo_metropolis_hastings(parsed_program, n, nflips),
     # add other inference algorithms here
 }
 
-def pr(program, inference="rejection_sampling", n=10000):
+def pr(program, inference="rejection_sampling", n=10000, debug=False):
     parser = Parser()
     tokens = tokenize(program)
-    parsed_program = parser.parse(tokens)
-    prob_true = INFERENCE_ALGORITHM[inference](parsed_program, n)
+    parsed_program, nflips = parser.parse(tokens)
+    if debug:
+        print(f"nflips = {nflips}\n")
+    prob_true = INFERENCE_ALGORITHM[inference](parsed_program, n, nflips)
     print(f"True ==> {prob_true:.4f},  False ==> {1-prob_true:.4f}")
+    return prob_true
     
-def rejection_sampling(parsed_program, n):
+def rejection_sampling(parsed_program, n, nflips=0):
     # simple monte carlo inference by actually running program n times 
     true = 0 
     rejects = 0
@@ -29,9 +32,9 @@ def rejection_sampling(parsed_program, n):
             continue
         if res:
             true += 1
-    return true / (n - rejects) 
+    return true / (n - rejects) if rejects < n else 0.0
 
-def importance_sampling_inference(parsed_program, n):
+def importance_sampling_inference(parsed_program, n, nflips=0):
     num, den = 0.0, 0.0
     for _ in range(n):
         interp = Interpreter(mode=InferenceMode.IMPORTANCE)
@@ -41,7 +44,7 @@ def importance_sampling_inference(parsed_program, n):
     return num/den
 
 def markov_chain_monte_carlo_metropolis_hastings(parsed_program, n, nflips=0):
-    burn_in = max(10, n // 10) # use 10% of iterations as burn in
+    burn_in = int(n * 0.1)
     true, kept = 0, 0
 
     interp = Interpreter(mode=InferenceMode.MCMC, nflips=nflips)

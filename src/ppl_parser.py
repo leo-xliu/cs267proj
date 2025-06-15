@@ -5,6 +5,8 @@ class Parser:
         self.tokens = tokens
         self.pos = 0
         ast = []
+        self.nflips = 0
+
         while self.peek()[0] != "EOP":
             # skip empty lines
             if self.peek()[0] == "NEWLINE":
@@ -12,7 +14,7 @@ class Parser:
                 continue
             node = self.parse_next_line()
             ast.append(node)
-        return ast
+        return ast, self.nflips
     
     def peek(self):
         return self.tokens[self.pos]
@@ -94,7 +96,8 @@ class Parser:
             self.eat("LPAREN")
             num = float(self.eat("NUMBER")[1])
             self.eat("RPAREN")
-            return Flip(num)
+            self.nflips += 1
+            return Flip(num, id=self.nflips - 1)
         if type == "IF":
             self.eat("IF")
             cond = self.parse_expr()

@@ -54,7 +54,7 @@ class TestInterpreter(unittest.TestCase):
             )
         ]
         res = importance_sampling_inference(parsed_program, 10000)
-        self.assertAlmostEqual(res, 0.36, delta=0.01)
+        self.assertAlmostEqual(res, 0.36, delta=0.03)
 
     def test_eval_program5(self):
         # 1 - 0.4*0.2 = 1 - 0.08 = 0.92

@@ -67,6 +67,9 @@ y = False
 not x and y or y and x
 ```
 
+## Running
+See ```tests\test_end2end.py``` for examples.
+
 ## Testing 
 
 ### Unit Testing 
