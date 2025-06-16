@@ -89,5 +89,29 @@ To run all unit tests from the project root:
 python -m unittest discover
 ```
 
-## Additional Goal
-Build a command-line REPL for our PPL so user can write their probablistic program and inference it directly from the terminal 
+## Interactive REPL
+
+You can experiment with your PPL models interactively using the built-in REPL.  
+
+### Launching the REPL
+
+To oepn the REPL from project directory, run:  
+   ```bash
+   ./pyppl
+```
+
+### REPL Commands
+
+- **`run [algorithm] [n]`**  
+  Execute inference on the current program.  
+  - `algorithm` (optional): `rejection` or `importance` (default: `rejection`)  
+  - `n`         (optional): number of samples (default: 1000)
+ 
+- **`exit`**
+  Exits out of the REPL.
+
+- **`reset`**
+  Clears all previously entered statements of the REPL session.
+
+Any other statements written will be parsed as a single line in your program sequentially. 
+- Note: **assign** expressions must contain their second expression in the same line to be valid in the REPL. 
