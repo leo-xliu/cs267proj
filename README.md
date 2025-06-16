@@ -70,6 +70,14 @@ not x and y or y and x
 ## Running
 See ```tests\test_end2end.py``` for examples.
 
+### MCMC: Metropolis Hasting
+We use a mixture of local and block proposals for Metropolis-Hastings proposal updates:
+- `mix = 1.0` — only local updates (random single-variable flips)
+- `mix = 0.85` — 85% local updates, 15% block updates (default setting)
+This mixture allows for both fine-grained local exploration and occasional larger block jumps to improve exploration of the state space.
+
+See the example `test_min_mixture` for how to configure the `mix` parameter.
+
 ## Testing 
 
 ### Unit Testing 

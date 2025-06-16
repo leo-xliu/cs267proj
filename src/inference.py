@@ -43,18 +43,15 @@ def importance_sampling_inference(parsed_program, n, nflips=0):
         den += w
     return num/den
 
-def markov_chain_monte_carlo_metropolis_hastings(parsed_program, n, nflips=0):
+def markov_chain_monte_carlo_metropolis_hastings(parsed_program, n, nflips=0, mix=0.8):
     burn_in = int(n * 0.1)
     true, kept = 0, 0
 
-    interp = Interpreter(mode=InferenceMode.MCMC, nflips=nflips)
+    interp = Interpreter(mode=InferenceMode.MCMC, nflips=nflips, mix=mix)
     curr_res, curr_weight = interp.run(parsed_program)
 
     for i in range(burn_in + n):
-        new_res, new_weight = interp.run(parsed_program)
-        
-        if curr_weight == 0 or new_weight > 0:
-            curr_res, curr_weight = new_res, new_weight
+        curr_res, curr_weight = interp.run(parsed_program)
 
         if i >= burn_in and curr_weight > 0:
             kept += 1
@@ -62,5 +59,4 @@ def markov_chain_monte_carlo_metropolis_hastings(parsed_program, n, nflips=0):
                 true += 1
 
     return true / kept if kept else 0.0
-     
             

@@ -14,7 +14,7 @@ class InferenceMode(Enum):
     # Add more if needed
 
 class Interpreter():
-    def __init__(self, observe_reject=True, mode:InferenceMode=InferenceMode.REJECTION, nflips:int=0):
+    def __init__(self, observe_reject=True, mode:InferenceMode=InferenceMode.REJECTION, nflips:int=0, mix=0.85):
         # Map variable names to stored value 
         self.vars = {}
         self.observe_reject = observe_reject
@@ -22,26 +22,33 @@ class Interpreter():
         self.weight = 1.0
 
         # MCMC
-        self.initial_state_set = False
+        self.initial_state_isset = False
         self.nflips = nflips
-        self.flip_idx = 0
+        self.flip_idx = random.randint(0, max(0, nflips - 1)) # 0
         self.reject_proposal = False
         self.prev_weight = 1.0
+        self.prev_result = None
+
+        self.state = {}
+        # *** NEW ***
+        self.block = None
+        self.mix = mix
+        # *** NEW ***
 
     def set_mode(self, new_mode):
         self.mode = new_mode
 
-    def run(self, program):  
-        if self.initial_state_set:
+    def run(self, program):
+        if self.mode == InferenceMode.MCMC and not self.initial_state_isset:
             # generate initial valid state
             while True:
                 try:
                     self.set_mode(InferenceMode.REJECTION)
                     res = self.eval_program(program)
                     self.set_mode(InferenceMode.MCMC)
-                    self.initial_state_set = True
+                    self.initial_state_isset = True
                     self.prev_weight = self.weight
-                    print(f"self.prev_weight = {self.prev_weight}\n")
+                    self.prev_result = res
                     return res, self.weight
                 except ObserveReject:
                     # reset
@@ -50,7 +57,14 @@ class Interpreter():
 
         # reset
         self.weight = 1.0
-        self.reject_proposal = False
+        # *** NEW ****
+        self.local_updates = random.random() < self.mix
+        if not self.local_updates:
+            # larger jump = non-local
+            k = random.randint(0, self.nflips)
+            self.block = random.sample(range(self.nflips), k) 
+        # *** NEW ****
+
         res = self.eval_program(program)
 
         if self.mode == InferenceMode.REJECTION:
@@ -58,12 +72,26 @@ class Interpreter():
         elif self.mode == InferenceMode.IMPORTANCE:
             return res, self.weight
         elif self.mode == InferenceMode.MCMC:
-            # in next proposal state, update next Flip        
-            self.flip_idx = (self.flip_idx + 1) % self.nflips
             # acceptance rate
-            alpha = min(1, self.weight / self.prev_weight)
-            if not self.weight or random.random() < alpha:
+            alpha = min(1.0, ((self.weight) / (self.prev_weight)) if self.prev_weight > 0 else 1.0)
+            if random.random() < alpha:
+                # accept proposal state
+                self.reject_proposal = False
+                self.prev_weight = self.weight
+                self.prev_result = res
+            else:
+                # reject
                 self.reject_proposal = True
+                self.weight = self.prev_weight 
+                res = self.prev_result
+            # print(f"alpha={alpha}")
+            # print(f"self.reject_proposal={self.reject_proposal}")
+            # print(f"self.state = {self.state}")
+
+            # in next proposal state, update next Flip    
+            if self.local_updates:
+                self.flip_idx = random.randint(0, max(0, self.nflips - 1)) # (self.flip_idx + 1) % self.nflips
+
             return res, self.weight
         else:
             raise ValueError(f"Unsupported mode: {self.mode!r}")
@@ -136,9 +164,16 @@ class Interpreter():
                 flip_node.prev_trace = flip_node.trace
 
             # generate proposal state
-            # only update 1 variable each run iteration
-            if flip_node.id == self.flip_idx:
-                flip_node.trace = random.random() < p
+            if self.local_updates:
+                # update only 1 variable
+                if flip_node.id == self.flip_idx:
+                    flip_node.trace = not flip_node.trace
+            else:
+                # update a block of variables
+                if flip_node.id in self.block:
+                    flip_node.trace = not flip_node.trace
+
+            self.state[flip_node.id] = flip_node.prev_trace
 
         elif self.mode is InferenceMode.REJECTION:
             flip_node.trace = random.random() < p
