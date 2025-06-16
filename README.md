@@ -77,6 +77,7 @@ We use a mixture of local and block proposals for Metropolis-Hastings proposal u
 This mixture allows for both fine-grained local exploration and occasional larger block jumps to improve exploration of the state space.
 
 See the example `test_min_mixture` for how to configure the `mix` parameter.
+Note: `mixture_avg_delta_plot.png` illustrates how varying the `mix` parameter influences the average deviation from the true probability.
 
 ## Testing 
 
