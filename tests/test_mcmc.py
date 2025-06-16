@@ -10,7 +10,7 @@ class TestInterpreter(unittest.TestCase):
                    Assign(Variable("y"), Flip(0.3, id=1), 
                           Or(Variable("x"), Variable("y"))))
         ]
-        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 1000, nflips=2)
+        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 10000, nflips=2)
         self.assertAlmostEqual(res, 0.72, delta=0.05)
 
     def test_network_example(self):
@@ -26,7 +26,7 @@ class TestInterpreter(unittest.TestCase):
                                             Observe(Not(Variable("S4")))))))),
             Variable("S2")
         ]
-        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 1000, nflips=3)
+        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 10000, nflips=3)
         self.assertAlmostEqual(res, (0.5 * 0.01) / (0.5 * (0.01 + 0.001)), delta=0.05)
 
     def test_eval_program3(self):
@@ -43,7 +43,7 @@ class TestInterpreter(unittest.TestCase):
                 )      
             )
         ]
-        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 1000, nflips=3)
+        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 10000, nflips=3)
         self.assertAlmostEqual(res, 0.36 + 0.12, delta=0.05)
 
     def test_eval_program4(self):
@@ -59,7 +59,7 @@ class TestInterpreter(unittest.TestCase):
                 )
             )
         ]
-        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 1000, nflips=3)
+        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 10000, nflips=3)
         self.assertAlmostEqual(res, 0.36, delta=0.05)
     
     def test_eval_program5(self):
@@ -70,7 +70,7 @@ class TestInterpreter(unittest.TestCase):
                           Observe(Or(Variable("x"), Variable("y"))))),
             Variable("x")
         ]
-        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 1000, nflips=2)
+        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 10000, nflips=2)
         self.assertAlmostEqual(res, 0.6 / 0.92, delta=0.05)
 
     def test_eval_program6(self):
@@ -81,7 +81,7 @@ class TestInterpreter(unittest.TestCase):
                           Observe(Or(Variable("x"), Variable("y"))))),
             Variable("x")
         ]
-        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 1000, nflips=2)
+        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 10000, nflips=2)
         self.assertAlmostEqual(res, 0.001 / 0.001999, delta=0.05)
 
     def test_eval_program7(self):
@@ -99,7 +99,7 @@ class TestInterpreter(unittest.TestCase):
             ),
             Variable("x")
         ]
-        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 1000, nflips=5)
+        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 10000, nflips=5)
         self.assertAlmostEqual(res, 1, delta=0.05)
 
     def test_eval_program8(self):
@@ -116,7 +116,7 @@ class TestInterpreter(unittest.TestCase):
                 Variable("x")
             ),
         ]
-        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 1000, nflips=5)
+        res = markov_chain_monte_carlo_metropolis_hastings(parsed_program, 10000, nflips=5)
         self.assertAlmostEqual(res, 0.75, delta=0.05)
 
 if __name__ == "__main__":
