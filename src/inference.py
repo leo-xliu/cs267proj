@@ -13,6 +13,10 @@ def pr(program, inference="rejection_sampling", n=10000, debug=False):
     parser = Parser()
     tokens = tokenize(program)
     parsed_program, nflips = parser.parse(tokens)
+    return pr_helper(parsed_program, nflips, inference, n, debug)
+    
+
+def pr_helper(parsed_program, nflips, inference, n, debug):
     if debug:
         print(f"nflips = {nflips}\n")
     prob_true = INFERENCE_ALGORITHM[inference](parsed_program, n, nflips)
